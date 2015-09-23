@@ -144,20 +144,39 @@ public class Formatter {
      */
     public String format(String code)
         throws MalformedTreeException, BadLocationException {
+         
+        if( code == null || code.length() <= 0 ) {
+           return "";
+        }
+        
         Map options = new java.util.HashMap();
-        options.put(JavaCore.COMPILER_SOURCE, "1.5");
-        options.put(JavaCore.COMPILER_COMPLIANCE, "1.5");
-        options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, "1.5");
+        options.put(JavaCore.COMPILER_SOURCE, "1.8");
+        options.put(JavaCore.COMPILER_COMPLIANCE, "1.8");
+        options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, "1.8");
 
         DefaultCodeFormatterOptions cfOptions =
             DefaultCodeFormatterOptions.getJavaConventionsSettings();
-        modifyCFOptions(cfOptions);
+         
+        // Let default be spaces, the sanner default for most projects without project wide lints
         cfOptions.tab_char = DefaultCodeFormatterOptions.SPACE;
-
+        
+        // Let modify config file overwrite even tab_char settings, for those who want tabs however
+        modifyCFOptions(cfOptions);
         CodeFormatter cf = new DefaultCodeFormatter(cfOptions, options);
-
+         
+        if(cf == null) {
+           throw new RuntimeException("Failed to load CodeFormatter class object");
+           //return code;
+        }
+           
         TextEdit te = cf.format(CodeFormatter.K_UNKNOWN, code, 0,
                                 code.length(), 0, null);
+           
+        if(te == null) {
+           throw new RuntimeException("Failed to load TextEdit class object");
+           //return code;
+        }
+        
         IDocument dc = new Document(code);
 
         te.apply(dc);
